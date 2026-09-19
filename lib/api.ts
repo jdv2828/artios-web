@@ -20,6 +20,9 @@ import { mockApi } from './mock-data'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 const USE_BACKEND = API_BASE_URL !== ''
+// Only fall back to in-memory data while developing. In a production build a
+// failed request must surface as an error, never as invented data.
+const ALLOW_MOCK_FALLBACK = process.env.NODE_ENV !== 'production'
 
 class ApiClient {
   private getToken(): string | null {
@@ -102,7 +105,7 @@ class ApiClient {
 
       return response
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         const response = await mockApi.login(credentials.email, credentials.password)
         localStorage.setItem('auth_token', response.access_token)
         localStorage.setItem('user', JSON.stringify(response.user))
@@ -157,7 +160,7 @@ class ApiClient {
 
       return response
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getActiveServices()
       }
 
@@ -173,7 +176,7 @@ class ApiClient {
     try {
       return this.request('/services')
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getServices()
       }
 
@@ -189,7 +192,7 @@ class ApiClient {
     try {
       return this.request(`/services/${id}`)
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getService(id)
       }
 
@@ -208,7 +211,7 @@ class ApiClient {
         body: JSON.stringify(data),
       })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.createService(data)
       }
 
@@ -227,7 +230,7 @@ class ApiClient {
         body: JSON.stringify(data),
       })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.updateService(id, data)
       }
 
@@ -243,7 +246,7 @@ class ApiClient {
     try {
       await this.request(`/services/${id}`, { method: 'DELETE' })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.deleteService(id)
       }
 
@@ -263,7 +266,7 @@ class ApiClient {
         body: JSON.stringify(data),
       }, { redirectOnUnauthorized: false })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.createAppointment(data)
       }
 
@@ -279,7 +282,7 @@ class ApiClient {
     try {
       return this.request(`/appointments/confirm/${token}`, {}, { redirectOnUnauthorized: false })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.confirmAppointment(token)
       }
 
@@ -296,7 +299,7 @@ class ApiClient {
       const params = new URLSearchParams({ service_id: String(serviceId), date })
       return this.request(`/availability?${params.toString()}`, {}, { redirectOnUnauthorized: false })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getAvailability(serviceId, date)
       }
 
@@ -312,7 +315,7 @@ class ApiClient {
     try {
       return this.request('/employees')
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getEmployees()
       }
       throw error
@@ -327,7 +330,7 @@ class ApiClient {
     try {
       return this.request(`/employees/${id}/availability`)
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getEmployeeAvailability(id)
       }
       throw error
@@ -345,7 +348,7 @@ class ApiClient {
         body: JSON.stringify(payload),
       })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.updateEmployeeAvailability(id, payload)
       }
       throw error
@@ -363,7 +366,7 @@ class ApiClient {
         body: JSON.stringify(payload),
       })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.addEmployeeBlockedDate(id, payload)
       }
       throw error
@@ -378,7 +381,7 @@ class ApiClient {
     try {
       await this.request(`/employees/${id}/blocked-dates/${date}`, { method: 'DELETE' })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.removeEmployeeBlockedDate(id, date)
       }
       throw error
@@ -393,7 +396,7 @@ class ApiClient {
     try {
       return this.request(`/clients/${dni}/appointments`, {}, { redirectOnUnauthorized: false })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getAppointmentsByDni(dni)
       }
       if ((error as ApiError).status === 404) {
@@ -421,7 +424,7 @@ class ApiClient {
     try {
       return this.request(`/appointments${params.toString() ? `?${params.toString()}` : ''}`)
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getAppointments(filters)
       }
 
@@ -437,7 +440,7 @@ class ApiClient {
     try {
       return this.request(`/appointments/${id}`)
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getAppointment(id)
       }
 
@@ -456,7 +459,7 @@ class ApiClient {
         body: JSON.stringify({ status }),
       })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.updateAppointmentStatus(id, status)
       }
 
@@ -516,7 +519,7 @@ class ApiClient {
     try {
       return this.request(`/appointments?${params.toString()}`)
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.getAppointmentsByDateRange(from, to)
       }
       throw error
@@ -534,7 +537,7 @@ class ApiClient {
         body: JSON.stringify(data),
       })
     } catch (error) {
-      if (this.isNetworkError(error)) {
+      if (this.isNetworkError(error) && ALLOW_MOCK_FALLBACK) {
         return mockApi.rescheduleAppointment(id, data)
       }
       throw error

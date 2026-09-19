@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Calendar, Filter, Eye, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Calendar, Filter, Eye, MoreHorizontal, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
 
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -88,7 +88,7 @@ export default function AppointmentsPage() {
     enabled: isAdmin,
   })
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-appointments', filters],
     queryFn: () => api.getAppointments({ ...filters, per_page: 100 }),
   })
@@ -172,6 +172,12 @@ export default function AppointmentsPage() {
           <CardContent className="pt-6">
             {isLoading ? (
               <div className="flex justify-center py-12"><Spinner className="h-8 w-8" /></div>
+            ) : isError ? (
+              <div className="text-center py-12">
+                <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+                <h3 className="text-lg font-medium mb-2">Error al cargar los turnos</h3>
+                <p className="text-muted-foreground">No se pudo conectar con el servidor. Intentá de nuevo.</p>
+              </div>
             ) : appointments.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />

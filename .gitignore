@@ -11,3 +11,7 @@ node_modules
 
 # TypeScript build metadata
 *.tsbuildinfo
+
+# Playwright artifacts
+test-results/
+playwright-report/
